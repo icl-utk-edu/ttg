@@ -9,8 +9,7 @@ jobs:
       matrix:
         build_type : [ Release, Debug ]
         device : [ cpu, gpu_nvidia, gpu_amd, gpu_intel ]
-
-    name: "${{ matrix.device }} ${{ matrix.build_type }}"
+    name: "${{ matrix.build_type }} ${{matrix.device}}"
     runs-on: ${{ matrix.device }}
     env:
       OMPI_MCA_btl_vader_single_copy_mechanism : none
@@ -37,7 +36,10 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         . $SETUP
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG \
+           -DTTG_ENABLE_CUDA=$CUDA \
+           -DTTG_ENABLE_HIP=$HIP \
+           -DTTG_ENABLE_LEVEL_ZERO=$LEVEL_ZERO
 
     - name: Build
       working-directory: ${{github.workspace}}/build

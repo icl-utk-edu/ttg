@@ -14,13 +14,13 @@ spack load cmake openblas ninja openmpi
 
 export CUDA=OFF
 export HIP=OFF
-export INTEL=OFF
+export LEVEL_ZERO=OFF
 if [ "$DEVICE" = "gpu_nvidia" ]; then
    spack load cuda
    CUDA=ON
 elif [ "$DEVICE" = "gpu_amd" ]; then
    HIP=ON
 elif [ "$DEVICE" = "gpu_intel" ]; then
-   INTEL=ON
+   LEVEL_ZERO=ON
 fi
 
