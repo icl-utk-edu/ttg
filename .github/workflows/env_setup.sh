@@ -10,11 +10,7 @@ if [[ -z "$SPACK_SETUP" || ! -e "$SPACK_SETUP" ]]; then
 fi
 source $SPACK_SETUP
 spack env activate -V parsec
-spack load python
-spack load cmake
-spack load openmpi
-spack load cuda
-spack load ninja
+spack load cmake openblas ninja openmpi
 
 export CUDA=OFF
 export HIP=OFF
