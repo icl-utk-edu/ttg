@@ -1,0 +1,81 @@
+name: Linux build @ ICL
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type : [ Release, Debug ]
+        device : [ cpu, gpu_nvidia, gpu_amd, gpu_intel ]
+
+    name: "${{ matrix.device }} ${{ matrix.build_type }}"
+    runs-on: ${{ matrix.device }}
+    env:
+      OMPI_MCA_btl_vader_single_copy_mechanism : none
+      PARSEC_MCA_runtime_bind_threads : 0
+      BUILD_CONFIG : >
+        -G Ninja
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DBUILD_SHARED_LIBS=OFF
+        -DMPIEXEC_PREFLAGS='--bind-to;none;--allow-run-as-root'
+        -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
+        -DTTG_EXAMPLES=ON
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create Build Environment
+      run:  cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG $CUDA_BUILD_OPTS || (cat CMakeFiles/CMakeConfigureLog.yaml)
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build .
+
+    - name: Build [cuda]
+      if: ${{ matrix.device == 'cuda' }}
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --target bspmm-cuda-parsec testing_dpotrf_cuda-parsec chain-ttg-cuda-parsec
+
+    - name: Test [cpu]
+      if: ${{ matrix.device == 'cpu' }}
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --target check-ttg
+
+    - name: Install
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --target install
+
+    - name: Test Install Tree
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: |
+        cmake -S $GITHUB_WORKSPACE/doc/dox/dev/devsamp/helloworld -B test_install_devsamp_helloworld -DCMAKE_PREFIX_PATH=${{github.workspace}}/install || (cat /home/runner/work/ttg/ttg/install/lib/cmake/ttg/ttg-config.cmake && test_install_devsamp_helloworld/CMakeFiles/CMakeConfigureLog.yaml)
+        cmake --build test_install_devsamp_helloworld
+        $MPIEXEC -n 2 test_install_devsamp_helloworld/helloworld-parsec
+        $MPIEXEC -n 2 test_install_devsamp_helloworld/helloworld-mad
+        cmake -S $GITHUB_WORKSPACE/doc/dox/dev/devsamp/fibonacci -B test_install_devsamp_fibonacci -DCMAKE_PREFIX_PATH=${{github.workspace}}/install || (cat /home/runner/work/ttg/ttg/install/lib/cmake/ttg/ttg-config.cmake && cat test_install_devsamp_fibonacci/CMakeFiles/CMakeConfigureLog.yaml)
+        cmake --build test_install_devsamp_fibonacci
+        $MPIEXEC -n 2 test_install_devsamp_fibonacci/fibonacci-parsec
+        cmake -E make_directory test_install_userexamples
+        cat > test_install_userexamples/CMakeLists.txt <<EOF
+        cmake_minimum_required(VERSION 3.14)
+        project(test)
+        find_package(ttg REQUIRED)
+        add_ttg_executable(simple $GITHUB_WORKSPACE/doc/dox/user/examples/simple.cc NOT_EXCLUDE_FROM_ALL)
+        add_ttg_executable(reducing $GITHUB_WORKSPACE/doc/dox/user/examples/reducing.cc NOT_EXCLUDE_FROM_ALL)
+        add_ttg_executable(iterative $GITHUB_WORKSPACE/doc/dox/user/examples/iterative.cc NOT_EXCLUDE_FROM_ALL)
+        add_ttg_executable(distributed $GITHUB_WORKSPACE/doc/dox/user/examples/distributed.cc NOT_EXCLUDE_FROM_ALL)
+        EOF
+        cmake -S test_install_userexamples -B test_install_userexamples/build -DCMAKE_PREFIX_PATH=${{github.workspace}}/install || (cat /home/runner/work/ttg/ttg/install/lib/cmake/ttg/ttg-config.cmake && cat test_install_devsamp_fibonacci/CMakeFiles/CMakeConfigureLog.yaml)
+        cmake --build test_install_userexamples/build
