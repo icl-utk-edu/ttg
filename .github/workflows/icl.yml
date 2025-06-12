@@ -22,22 +22,29 @@ jobs:
         -DMPIEXEC_PREFLAGS='--bind-to;none;--allow-run-as-root'
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DTTG_EXAMPLES=ON
-
+      SPACK_SETUP : /apps/spacks/current/github_env/share/spack/setup-env.sh
+      SETUP : ${{github.workspace}}/.github/workflows/env_setup.sh
     steps:
     - uses: actions/checkout@v4
 
     - name: Create Build Environment
-      run:  cmake -E make_directory ${{github.workspace}}/build
+      run:  |
+        . $SETUP
+        cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG $CUDA_BUILD_OPTS || (cat CMakeFiles/CMakeConfigureLog.yaml)
+      run: |
+        . $SETUP
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG $CUDA_BUILD_OPTS || (cat CMakeFiles/CMakeConfigureLog.yaml)
 
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build .
+      run: |
+        . $SETUP
+        cmake --build .
 
     - name: Build [cuda]
       if: ${{ matrix.device == 'cuda' }}
