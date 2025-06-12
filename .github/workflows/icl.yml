@@ -50,23 +50,29 @@ jobs:
       if: ${{ matrix.device == 'cuda' }}
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --target bspmm-cuda-parsec testing_dpotrf_cuda-parsec chain-ttg-cuda-parsec
+      run: |
+        . $SETUP
+        cmake --build . --target bspmm-cuda-parsec testing_dpotrf_cuda-parsec chain-ttg-cuda-parsec
 
-    - name: Test [cpu]
-      if: ${{ matrix.device == 'cpu' }}
+    - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --target check-ttg
+      run: |
+        . $SETUP
+        cmake --build . --target check-ttg
 
     - name: Install
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --target install
+      run: |
+        . $SETUP
+        cmake --build . --target install
 
     - name: Test Install Tree
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: |
+        . $SETUP
         cmake -S $GITHUB_WORKSPACE/doc/dox/dev/devsamp/helloworld -B test_install_devsamp_helloworld -DCMAKE_PREFIX_PATH=${{github.workspace}}/install || (cat /home/runner/work/ttg/ttg/install/lib/cmake/ttg/ttg-config.cmake && test_install_devsamp_helloworld/CMakeFiles/CMakeConfigureLog.yaml)
         cmake --build test_install_devsamp_helloworld
         $MPIEXEC -n 2 test_install_devsamp_helloworld/helloworld-parsec
