@@ -40,7 +40,7 @@ jobs:
            -DTTG_ENABLE_CUDA=$CUDA \
            -DTTG_ENABLE_HIP=$HIP \
            -DTTG_ENABLE_LEVEL_ZERO=$LEVEL_ZERO
-
+        cmake -L
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
