@@ -23,6 +23,7 @@ jobs:
         -DTTG_EXAMPLES=ON
       SPACK_SETUP : /apps/spacks/current/github_env/share/spack/setup-env.sh
       SETUP : ${{github.workspace}}/.github/workflows/env_setup.sh
+      MPIEXEC : mpiexec
     steps:
     - uses: actions/checkout@v4
 
