@@ -9,8 +9,8 @@ if [[ -z "$SPACK_SETUP" || ! -e "$SPACK_SETUP" ]]; then
    exit 1
 fi
 source $SPACK_SETUP
-spack env activate -V parsec
-spack load cmake openblas ninja openmpi
+spack env activate -V ttg
+spack load cmake openblas ninja bison flex gcc@12 git openmpi boost eigen intel-oneapi-tbb
 
 export CUDA=OFF
 export HIP=OFF
