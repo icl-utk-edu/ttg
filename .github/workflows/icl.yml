@@ -1,6 +1,6 @@
 name: Linux build @ ICL
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
@@ -12,6 +12,7 @@ jobs:
     name: "${{ matrix.build_type }} ${{matrix.device}}"
     runs-on: ${{ matrix.device }}
     env:
+      DEVICE : ${{matrix.device}}
       OMPI_MCA_btl_vader_single_copy_mechanism : none
       PARSEC_MCA_runtime_bind_threads : 0
       BUILD_CONFIG : >
