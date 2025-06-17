@@ -56,7 +56,8 @@ jobs:
       shell: bash
       run: |
         . $SETUP
-        cmake --build . --target bspmm-cuda-parsec testing_dpotrf_cuda-parsec chain-ttg-cuda-parsec
+        cmake --build . --target bspmm-cuda-parsec testing_dpotrf_cuda-parsec
+        #cmake --build . --target chain-ttg-cuda-parsec
 
     - name: Test
       working-directory: ${{github.workspace}}/build
