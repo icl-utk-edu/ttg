@@ -22,6 +22,7 @@ jobs:
         -DMPIEXEC_PREFLAGS='--bind-to;none;--allow-run-as-root'
         -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
         -DTTG_EXAMPLES=ON
+        -DTTG_FETCH_BOOST=OFF
       SPACK_SETUP : /apps/spacks/current/github_env/share/spack/setup-env.sh
       SETUP : ${{github.workspace}}/.github/workflows/env_setup.sh
     steps:
@@ -37,7 +38,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         . $SETUP
-        cmake $GITHUB_WORKSPACE -L -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_CONFIG \
+        cmake $GITHUB_WORKSPACE -L $BUILD_CONFIG \
            -DTTG_ENABLE_CUDA=$CUDA \
            -DTTG_ENABLE_HIP=$HIP \
            -DTTG_ENABLE_LEVEL_ZERO=$LEVEL_ZERO
