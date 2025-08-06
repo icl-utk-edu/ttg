@@ -64,7 +64,8 @@ jobs:
       shell: bash
       run: |
         . $SETUP
-        cmake --build . --target check-ttg
+        ctest -R ttg/test/
+        #cmake --build . --target check-ttg
 
     - name: Install
       working-directory: ${{github.workspace}}/build
